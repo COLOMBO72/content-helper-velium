@@ -1,0 +1,20 @@
+{
+  "name": "content-helper-velium",
+  "version": "1.0.0",
+  "description": "Content Helper Velium — автопостинг из TG во все соцсети",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "nodemon bot.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "dotenv": "^16.4.0",
+    "form-data": "^4.0.0",
+    "node-telegram-bot-api": "^0.64.0",
+    "sql.js": "^1.14.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
