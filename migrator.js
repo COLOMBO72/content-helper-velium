@@ -446,7 +446,7 @@ bot.on("callback_query", async (query) => {
     bot.sendMessage(chatId, "⏳ Публикую в ВК...");
 
     try {
-      const postId = await postToVK(post.text, pendingPhotoPath);
+      const postId = await postToVK(post.text);
       cleanupPhoto();
       progress.currentIndex++;
       progress.lastPostedAt = Date.now();
@@ -486,67 +486,84 @@ bot.on("callback_query", async (query) => {
 const VK_API = "https://api.vk.com/method";
 const VK_V = "5.131";
 
-async function postToVK(text, photoPath) {
-  let attachment = null;
+// async function postToVK(text, photoPath) {
+//   let attachment = null;
 
-  if (photoPath && fs.existsSync(photoPath)) {
-    // Используем POST вместо GET для getWallUploadServer
-    const serverRes = await axios.post(
-      `${VK_API}/photos.getWallUploadServer`,
-      new URLSearchParams({
-        group_id: VK_GROUP_ID,
-        access_token: VK_TOKEN,
-        v: VK_V,
-      }),
-    );
-    if (serverRes.data.error) throw new Error(serverRes.data.error.error_msg);
+//   if (photoPath && fs.existsSync(photoPath)) {
+//     const serverRes = await axios.post(
+//       `${VK_API}/photos.getWallUploadServer`,
+//       new URLSearchParams({
+//         group_id: VK_GROUP_ID,
+//         access_token: VK_TOKEN,
+//         v: VK_V,
+//       }),
+//     );
+//     if (serverRes.data.error) throw new Error(serverRes.data.error.error_msg);
 
-    const form = new FormData();
-    form.append("photo", fs.createReadStream(photoPath));
-    const uploadRes = await axios.post(
-      serverRes.data.response.upload_url,
-      form,
-      {
-        headers: form.getHeaders(),
-        maxContentLength: Infinity,
-        maxBodyLength: Infinity,
-      },
-    );
+//     const form = new FormData();
+//     form.append("photo", fs.createReadStream(photoPath));
+//     const uploadRes = await axios.post(
+//       serverRes.data.response.upload_url,
+//       form,
+//       {
+//         headers: form.getHeaders(),
+//         maxContentLength: Infinity,
+//         maxBodyLength: Infinity,
+//       },
+//     );
 
-    const saveRes = await axios.post(
-      `${VK_API}/photos.saveWallPhoto`,
-      new URLSearchParams({
-        group_id: VK_GROUP_ID,
-        photo: uploadRes.data.photo,
-        server: String(uploadRes.data.server),
-        hash: uploadRes.data.hash,
-        access_token: VK_TOKEN,
-        v: VK_V,
-      }),
-    );
-    if (saveRes.data.error) throw new Error(saveRes.data.error.error_msg);
+//     const saveRes = await axios.post(
+//       `${VK_API}/photos.saveWallPhoto`,
+//       new URLSearchParams({
+//         group_id: VK_GROUP_ID,
+//         photo: uploadRes.data.photo,
+//         server: String(uploadRes.data.server),
+//         hash: uploadRes.data.hash,
+//         access_token: VK_TOKEN,
+//         v: VK_V,
+//       }),
+//     );
+//     if (saveRes.data.error) throw new Error(saveRes.data.error.error_msg);
 
-    const p = saveRes.data.response[0];
-    attachment = `photo${p.owner_id}_${p.id}`;
-  }
+//     const p = saveRes.data.response[0];
+//     attachment = `photo${p.owner_id}_${p.id}`;
+//   }
 
+//   const wallRes = await axios.post(
+//     `${VK_API}/wall.post`,
+//     new URLSearchParams({
+//       owner_id: `-${VK_GROUP_ID}`,
+//       from_group: "1",
+//       message: text || "",
+//       ...(attachment ? { attachments: attachment } : {}),
+//       access_token: VK_TOKEN,
+//       v: VK_V,
+//     }),
+//   );
+//   if (wallRes.data.error) throw new Error(wallRes.data.error.error_msg);
+
+//   return wallRes.data.response.post_id;
+// }
+
+// === закомментировал для будущего использования, если нужно будет публиковать в ВК с фото и разблокируют тг
+
+async function postToVK(text) {
   const wallRes = await axios.post(
     `${VK_API}/wall.post`,
     new URLSearchParams({
       owner_id: `-${VK_GROUP_ID}`,
       from_group: "1",
       message: text || "",
-      ...(attachment ? { attachments: attachment } : {}),
       access_token: VK_TOKEN,
       v: VK_V,
     }),
   );
   if (wallRes.data.error) throw new Error(wallRes.data.error.error_msg);
-
   return wallRes.data.response.post_id;
 }
 
 // ── Планировщик следующего поста ──────────────────────────────────
+
 let scheduleTimer = null;
 
 function scheduleNext(immediately) {
